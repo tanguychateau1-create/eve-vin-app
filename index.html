@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard EVE® - Application Complète</title>
+    <title>Dashboard EVE® - Application Complète & Synchronisable</title>
     <!-- Manifeste PWA intégré -->
     <link rel="manifest" href="data:application/manifest+json,{
         'name': 'Dashboard EVE',
@@ -90,6 +90,7 @@
         .btn-warning { background: var(--warning); padding: 4px 8px; font-size: 0.75rem; width: auto; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .btn-danger { background: var(--danger); padding: 4px 8px; font-size: 0.75rem; width: auto; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .btn-camera { background: #0284c7; margin-bottom: 8px; }
+        .btn-sync { background: #0d9488; margin-top: 8px; }
 
         .step-section { display: none; }
         .step-section.active { display: block; }
@@ -147,12 +148,12 @@
 <div class="container">
     <header>
         <h1>Dashboard EVE®</h1>
-        <p class="subtitle">Fiche de Dégustation Officielle – Version Intégrale & Mobile</p>
+        <p class="subtitle">Fiche de Dégustation Officielle – Intégrale & Synchronisable</p>
     </header>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('train')">🎯 Entraînement & Fiches</button>
-        <button class="tab-btn" onclick="switchTab('history')">📂 Catalogue & Caméra</button>
+        <button class="tab-btn" onclick="switchTab('history')">📂 Catalogue & Synchro</button>
     </div>
 
     <!-- ONGLET 1 : ENTRAINEMENT -->
@@ -221,7 +222,6 @@
             <div class="form-group">
                 <span class="group-label">Couleur (Sélection sécurisée selon le type de vin)</span>
                 
-                <!-- BLANC / ORANGE / MOELLEUX -->
                 <div id="colorBlock-blanc" class="color-section-block">
                     <div class="radio-group" data-name="color">
                         <div class="radio-option"><input type="radio" name="color" id="col_b1" value="Jaune vert"><label for="col_b1">Jaune vert</label></div>
@@ -232,7 +232,6 @@
                     </div>
                 </div>
 
-                <!-- ROSÉ -->
                 <div id="colorBlock-rose" class="color-section-block">
                     <div class="radio-group" data-name="color">
                         <div class="radio-option"><input type="radio" name="color" id="col_p1" value="Rose"><label for="col_p1">Rose</label></div>
@@ -241,7 +240,6 @@
                     </div>
                 </div>
 
-                <!-- ROUGE / PÉTILLANT -->
                 <div id="colorBlock-rouge" class="color-section-block">
                     <div class="radio-group" data-name="color">
                         <div class="radio-option"><input type="radio" name="color" id="col_r1" value="Violacé"><label for="col_r1">Violacé</label></div>
@@ -278,7 +276,7 @@
 
             <div class="form-group">
                 <label class="group-label" for="aromas_nose">Arômes (Nez)</label>
-                <textarea id="aromas_nose" rows="2" placeholder="Ex: Cerise griotte, framboise, épices douces..."></textarea>
+                <textarea id="aromas_nose" rows="2" placeholder="Ex: Cerise griotte, framboise, épices..."></textarea>
             </div>
 
             <!-- 3. BOUCHE -->
@@ -434,21 +432,26 @@
 
     </div>
 
-    <!-- ONGLET 2 : CATALOGUE & IMPORT INTELLIGENT -->
+    <!-- ONGLET 2 : CATALOGUE & SYNCHRO -->
     <div id="history-view" class="view">
         
         <div class="card">
-            <h2>📥 Importer une capture d'écran, une photo ou une note</h2>
+            <h2>📥 Importer du texte ou une note</h2>
             <div class="import-box">
-                <p style="font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-bottom: 8px;">Prends une photo ou charge un fichier :</p>
-                <!-- Bouton direct Caméra mobile -->
-                <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleFileImport(event)" style="display:none;">
-                <button class="btn btn-camera" onclick="document.getElementById('cameraInput').click()">📸 Prendre en photo une étiquette</button>
-                
-                <input type="file" id="importFileInput" accept=".txt,.md,.json,image/*" onchange="handleFileImport(event)" style="margin-bottom: 10px;">
-                <img id="imagePreviewContainer" alt="Aperçu de la capture">
-                <textarea id="importTextRaw" rows="3" placeholder="Ou colle ton texte / notes de dégustation ici..." style="margin-bottom: 8px; margin-top: 10px;"></textarea>
+                <p style="font-size: 0.9rem; color: var(--primary); font-weight: 600; margin-bottom: 8px;">Charge un fichier texte ou colle tes notes :</p>
+                <input type="file" id="importFileInput" accept=".txt,.md,.json" onchange="handleFileImport(event)" style="margin-bottom: 10px;">
+                <textarea id="importTextRaw" rows="3" placeholder="Colle ton texte / notes de dégustation ici..." style="margin-bottom: 8px;"></textarea>
                 <button class="btn" onclick="processSmartImport()">Déchiffrer et générer la fiche automatique</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔄 Synchronisation manuelle (PC ↔ Mobile)</h2>
+            <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px;">Pour transférer tes fiches d'un appareil à l'autre :</p>
+            <button class="btn btn-sync" onclick="exportCatalogJSON()">📤 Exporter mon catalogue (JSON)</button>
+            <div style="margin-top: 10px;">
+                <label class="group-label" style="font-size: 0.8rem;">Importer un catalogue JSON :</label>
+                <input type="file" id="importCatalogJSON" accept=".json" onchange="importCatalogJSON(event)">
             </div>
         </div>
 
@@ -457,27 +460,27 @@
             
             <div class="filter-bar">
                 <div>
-                    <label class="group-label" style="font-size:0.75rem;">Filtrer par Couleur</label>
+                    <label class="group-label" style="font-size:0.75rem;">Couleur</label>
                     <select id="filterColor" onchange="renderCatalog()">
-                        <option value="">Toutes les couleurs</option>
+                        <option value="">Toutes</option>
                         <option value="Vin Rouge">Vin Rouge</option>
                         <option value="Vin Blanc">Vin Blanc</option>
                         <option value="Vin Rosé">Vin Rosé</option>
                         <option value="Vin Pétillant">Vin Pétillant</option>
                         <option value="Vin Orange">Vin Orange</option>
-                        <option value="Vin Moelleux / Liquoreux">Vin Moelleux / Liquoreux</option>
+                        <option value="Vin Moelleux / Liquoreux">Moelleux</option>
                     </select>
                 </div>
                 <div>
-                    <label class="group-label" style="font-size:0.75rem;">Filtrer par Région</label>
+                    <label class="group-label" style="font-size:0.75rem;">Région</label>
                     <select id="filterProv" onchange="renderCatalog()">
-                        <option value="">Toutes les régions</option>
+                        <option value="">Toutes</option>
                     </select>
                 </div>
                 <div>
-                    <label class="group-label" style="font-size:0.75rem;">Filtrer par Millésime</label>
+                    <label class="group-label" style="font-size:0.75rem;">Millésime</label>
                     <select id="filterYear" onchange="renderCatalog()">
-                        <option value="">Tous les millésimes</option>
+                        <option value="">Tous</option>
                     </select>
                 </div>
             </div>
@@ -486,16 +489,16 @@
                 <table class="catalog-table">
                     <thead>
                         <tr>
-                            <th onclick="sortCatalog('name')">Nom du vin ↕</th>
+                            <th onclick="sortCatalog('name')">Nom ↕</th>
                             <th onclick="sortCatalog('domain')">Domaine ↕</th>
-                            <th onclick="sortCatalog('year')">Millésime ↕</th>
-                            <th onclick="sortCatalog('typeCat')">Couleur ↕</th>
+                            <th onclick="sortCatalog('year')">Année ↕</th>
+                            <th onclick="sortCatalog('typeCat')">Type ↕</th>
                             <th onclick="sortCatalog('provenance')">Région ↕</th>
                             <th style="width: 140px; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="catalogTableBody">
-                        <tr><td colspan="6" style="text-align:center; color:#64748b;">Aucune fiche enregistrée pour le moment.</td></tr>
+                        <tr><td colspan="6" style="text-align:center; color:#64748b;">Aucune fiche enregistrée.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -503,7 +506,7 @@
     </div>
 </div>
 
-<!-- MODAL DE CONSULTATION FIGÉE -->
+<!-- MODAL DE CONSULTATION -->
 <div id="catalogModal" class="modal">
     <div class="modal-content">
         <button class="modal-close" onclick="closeModal()">Fermer ✕</button>
@@ -511,17 +514,17 @@
     </div>
 </div>
 
-<!-- MODAL D'AFFICHAGE DE LA FICHE OFFICIELLE -->
+<!-- MODAL OFFICIELLE -->
 <div id="officialModal" class="modal">
     <div class="modal-content">
         <button class="modal-close" onclick="closeOfficialModal()">Fermer ✕</button>
         <div id="officialModalBody"></div>
-        <button class="btn btn-success" style="margin-top: 20px;" onclick="saveDirectFromModal()">💾 Enregistrer cette fiche dans le catalogue</button>
+        <button class="btn btn-success" style="margin-top: 20px;" onclick="saveDirectFromModal()">💾 Enregistrer dans le catalogue</button>
     </div>
 </div>
 
 <script>
-    let savedWines = JSON.parse(localStorage.getItem('eve_v17_catalog')) || [];
+    let savedWines = JSON.parse(localStorage.getItem('eve_v18_catalog')) || [];
     let currentWine = {};
     let currentSort = { field: 'name', asc: true };
 
@@ -590,57 +593,31 @@
     function handleFileImport(event) {
         const file = event.target.files[0];
         if (!file) return;
-
-        const previewImg = document.getElementById('imagePreviewContainer');
-        const textArea = document.getElementById('importTextRaw');
-
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                previewImg.src = e.target.result;
-                previewImg.style.display = 'block';
-                textArea.value = "[Photo / Étiquette capturée] Analyse intelligente en cours...";
-            };
-            reader.readAsDataURL(file);
-        } else {
-            previewImg.style.display = 'none';
-            const reader = new FileReader();
-            reader.onload = function(e) { textArea.value = e.target.result; };
-            reader.readAsText(file);
-        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('importTextRaw').value = e.target.result;
+        };
+        reader.readAsText(file);
     }
 
     function processSmartImport() {
         let rawText = document.getElementById('importTextRaw').value.trim();
         if (!rawText) {
-            alert("❌ Veuillez charger une photo ou coller du texte.");
+            alert("❌ Veuillez charger un fichier ou coller du texte.");
             return;
         }
 
-        let detectedName = "Tavel";
-        let detectedDomain = "Domaine de la Fiche";
+        let lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let detectedName = lines.length > 0 ? lines[0] : "Vin Détecté";
+        let detectedDomain = "Domaine Inconnu";
         let detectedYear = "2023";
-        let detectedType = "Vin Rosé";
+        let detectedType = "Vin Rouge";
 
         let textLower = rawText.toLowerCase();
-        
-        // Analyse réelle et ciblée du texte importé
-        if (textLower.includes('tavel')) {
-            detectedName = "Tavel";
-            detectedType = "Vin Rosé";
-        } else if (textLower.includes('savigny')) {
-            detectedName = "Savigny-lès-Beaune";
-            detectedType = "Vin Rouge";
-        } else if (textLower.includes('sancerre')) {
-            detectedName = "Sancerre";
-            detectedType = "Vin Blanc";
-        } else if (textLower.includes('chablis')) {
-            detectedName = "Chablis";
-            detectedType = "Vin Blanc";
-        } else if (textLower.includes('mercurey')) {
-            detectedName = "Mercurey";
-            detectedType = "Vin Rouge";
-        }
+        if (textLower.includes('blanc') || textLower.includes('chardonnay') || textLower.includes('chablis') || textLower.includes('sancerre')) detectedType = "Vin Blanc";
+        else if (textLower.includes('rosé') || textLower.includes('tavel') || textLower.includes('provence')) detectedType = "Vin Rosé";
+        else if (textLower.includes('pétillant') || textLower.includes('champagne')) detectedType = "Vin Pétillant";
+        else if (textLower.includes('moelleux')) detectedType = "Vin Moelleux / Liquoreux";
 
         let yearMatch = rawText.match(/\b(19\d\d|20[0-3]\d)\b/);
         if (yearMatch) detectedYear = yearMatch[1];
@@ -664,35 +641,51 @@
                 <em>${currentWine.ref.summary}</em>
             </div>
             <table class="ref-table">
-                <thead>
-                    <tr>
-                        <th class="ref-item-col">Critère EVE®</th>
-                        <th class="ref-val-col">Référence Déduite</th>
-                    </tr>
-                </thead>
+                <thead><tr><th class="ref-item-col">Critère EVE®</th><th class="ref-val-col">Référence Déduite</th></tr></thead>
                 <tbody>
                     <tr><td class="ref-item-col">Limpidité</td><td class="ref-val-col">${currentWine.ref.limpidity}</td></tr>
-                    <tr><td class="ref-item-col">Intensité Œil</td><td class="ref-val-col">${currentWine.ref.eye_intensity}</td></tr>
                     <tr><td class="ref-item-col">Couleur</td><td class="ref-val-col">${currentWine.ref.color}</td></tr>
-                    <tr><td class="ref-item-col">Impression Nez</td><td class="ref-val-col">${currentWine.ref.nose_impression}</td></tr>
-                    <tr><td class="ref-item-col">Intensité Nez</td><td class="ref-val-col">${currentWine.ref.nose_intensity}</td></tr>
                     <tr><td class="ref-item-col">Arômes Nez</td><td class="ref-val-col">${currentWine.ref.aromas}</td></tr>
-                    <tr><td class="ref-item-col">Sucre</td><td class="ref-val-col">${currentWine.ref.sugar}</td></tr>
-                    <tr><td class="ref-item-col">Alcool</td><td class="ref-val-col">${currentWine.ref.alcohol}</td></tr>
                     <tr><td class="ref-item-col">Acidité</td><td class="ref-val-col">${currentWine.ref.acidity}</td></tr>
                     <tr><td class="ref-item-col">Tanins</td><td class="ref-val-col">${currentWine.ref.tannins}</td></tr>
-                    <tr><td class="ref-item-col">Arômes Bouche</td><td class="ref-val-col">${currentWine.ref.mouth_aromas}</td></tr>
-                    <tr><td class="ref-item-col">Corps</td><td class="ref-val-col">${currentWine.ref.body}</td></tr>
-                    <tr><td class="ref-item-col">Finale</td><td class="ref-val-col">${currentWine.ref.finish}</td></tr>
-                    <tr><td class="ref-item-col">Qualité</td><td class="ref-val-col">${currentWine.ref.quality}</td></tr>
-                    <tr><td class="ref-item-col">Évolution</td><td class="ref-val-col">${currentWine.ref.evolution}</td></tr>
-                    <tr><td class="ref-item-col">Conclusion (2 mots)</td><td class="ref-val-col">${currentWine.ref.twowords}</td></tr>
                 </tbody>
             </table>
         `;
-
         document.getElementById('officialModalBody').innerHTML = html;
         document.getElementById('officialModal').style.display = 'flex';
+    }
+
+    function exportCatalogJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savedWines, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "catalogue_eve_export.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importCatalogJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    savedWines = imported;
+                    localStorage.setItem('eve_v18_catalog', JSON.stringify(savedWines));
+                    initFilters();
+                    renderCatalog();
+                    alert("✅ Catalogue importé et synchronisé avec succès !");
+                } else {
+                    alert("❌ Format de fichier invalide.");
+                }
+            } catch (err) {
+                alert("❌ Erreur lors de la lecture du fichier JSON.");
+            }
+        };
+        reader.readAsText(file);
     }
 
     function processStep1Input() {
@@ -705,7 +698,7 @@
         let yearInput = yearField.value.trim();
 
         if (!name || !domain || !yearInput) {
-            alert("❌ Erreur : Veuillez remplir tous les champs obligatoires.");
+            alert("❌ Veuillez remplir les champs obligatoires.");
             return null;
         }
 
@@ -713,11 +706,13 @@
         nameField.value = corrected.name;
         domainField.value = corrected.domain;
 
-        let year = yearInput;
-        let typeCat = document.getElementById('wineTypeCat').value;
-        let provenance = detectRegion(corrected.name, corrected.domain);
-
-        return { name: corrected.name, domain: corrected.domain, year, typeCat, provenance };
+        return {
+            name: corrected.name,
+            domain: corrected.domain,
+            year: yearInput,
+            typeCat: document.getElementById('wineTypeCat').value,
+            provenance: detectRegion(corrected.name, corrected.domain)
+        };
     }
 
     function getSmartReference(wine) {
@@ -726,7 +721,6 @@
             w.domain.toLowerCase() === wine.domain.toLowerCase() &&
             w.year.toString().toLowerCase() === wine.year.toString().toLowerCase()
         );
-
         if (existing && existing.ref) return existing.ref;
         return generateDefaultReference(wine);
     }
@@ -737,30 +731,27 @@
 
         if (isRosé) {
             return {
-                summary: `Vin rosé puissant et structuré de ${wine.provenance} (${wine.year}), aux notes de fruits rouges mûrs, d'épices et une magnifique présence en bouche.`,
-                limpidity: "Limpide", eye_intensity: "Soutenue", color: "Saumon",
-                nose_impression: "Aromatique", nose_intensity: "Ouverte", aromas: "Framboise écrasée, cerise, notes poivrées",
-                sugar: "Sec", alcohol: "Moyen", acidity: "Fraîche", tannins: "Faibles", mouth_aromas: "Fruits d'été, épices douces, belle longueur", body: "Structuré", finish: "Long",
-                quality: "Très bon", evolution: "Épanouissement", twowords: "Gourmand et charpenté",
-                totalScore: 3.5
+                summary: `Vin rosé ciselé de ${wine.provenance} (${wine.year}), notes de fruits d'été et belle tension.`,
+                limpidity: "Limpide", eye_intensity: "Pâle", color: "Saumon",
+                nose_impression: "Aromatique", nose_intensity: "Ouverte", aromas: "Pêche blanche, groseille, agrumes",
+                sugar: "Sec", alcohol: "Moyen", acidity: "Fraîche", tannins: "Faibles", mouth_aromas: "Pamplemousse rose, finale vive", body: "Léger", finish: "Moyen",
+                quality: "Très bon", evolution: "Jeunesse", twowords: "Frais et friand", totalScore: 3.5
             };
         } else if (isWhite) {
             return {
-                summary: `Vin blanc sec de ${wine.provenance} (${wine.year}), expression pure du terroir avec une belle minéralité et une acidité rafraîchissante.`,
+                summary: `Vin blanc sec de ${wine.provenance} (${wine.year}), minéralité et acidité rafraîchissante.`,
                 limpidity: "Limpide", eye_intensity: "Pâle", color: "Jaune citron",
-                nose_impression: "Aromatique", nose_intensity: "Prononcée", aromas: "Agrumes vifs, pamplemousse, notes florales et minérales",
-                sugar: "Sec", alcohol: "Moyen", acidity: "Élevée", tannins: "Faibles", mouth_aromas: "Citron, zeste, craie, finale saline", body: "Léger", finish: "Long",
-                quality: "Très bon", evolution: "Jeunesse", twowords: "Vif et minéral",
-                totalScore: 3.5
+                nose_impression: "Aromatique", nose_intensity: "Prononcée", aromas: "Agrumes vifs, craie, notes florales",
+                sugar: "Sec", alcohol: "Moyen", acidity: "Élevée", tannins: "Faibles", mouth_aromas: "Citron, zeste, finale saline", body: "Léger", finish: "Long",
+                quality: "Très bon", evolution: "Jeunesse", twowords: "Vif et minéral", totalScore: 3.5
             };
         } else {
             return {
-                summary: `Vin rouge racé de ${wine.provenance} (${wine.year}), caractérisé par une belle finesse, un élevage maîtrisé et des tanins souples.`,
+                summary: `Vin rouge racé de ${wine.provenance} (${wine.year}), élevage maîtrisé et tanins souples.`,
                 limpidity: "Limpide", eye_intensity: "Moyenne", color: "Rubis",
-                nose_impression: "Aromatique", nose_intensity: "Ouverte", aromas: "Cerise fraîche, framboise, notes délicates d'épices douces",
-                sugar: "Sec", alcohol: "Moyen", acidity: "Fraîche", tannins: "Fondus", mouth_aromas: "Petits fruits rouges croquants", body: "Moyen", finish: "Moyen",
-                quality: "Très bon", evolution: "Épanouissement", twowords: "Élégant et fruité",
-                totalScore: 3.5
+                nose_impression: "Aromatique", nose_intensity: "Ouverte", aromas: "Cerise fraîche, framboise, épices",
+                sugar: "Sec", alcohol: "Moyen", acidity: "Fraîche", tannins: "Fondus", mouth_aromas: "Fruits rouges croquants", body: "Moyen", finish: "Moyen",
+                quality: "Très bon", evolution: "Épanouissement", twowords: "Élégant et fruité", totalScore: 3.5
             };
         }
     }
@@ -770,7 +761,7 @@
         if (!data) return;
         currentWine = data;
         updateColorSelector(currentWine.typeCat);
-        document.getElementById('activeWineTitle').innerText = `${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}] — Région : ${currentWine.provenance}`;
+        document.getElementById('activeWineTitle').innerText = `${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}] — ${currentWine.provenance}`;
         showStep(2);
     }
 
@@ -781,70 +772,39 @@
         currentWine.ref = getSmartReference(currentWine);
 
         let html = `
-            <h3 style="background:var(--primary); color:#fff; padding:10px; border-radius:8px; margin-bottom:15px;">
-                ${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}] — Région : ${currentWine.provenance}
+            <h3 style="background:var(--primary); color:#fff; padding:10px; border-radius:8px; margin-bottom:12px;">
+                ${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}]
             </h3>
-            <div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-bottom:12px; font-size:0.85rem;">
+            <div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-bottom:10px; font-size:0.8rem;">
                 <em>${currentWine.ref.summary}</em>
             </div>
             <table class="ref-table">
-                <thead>
-                    <tr>
-                        <th class="ref-item-col">Critère EVE®</th>
-                        <th class="ref-val-col">Référence Officielle</th>
-                    </tr>
-                </thead>
+                <thead><tr><th class="ref-item-col">Critère EVE®</th><th class="ref-val-col">Référence</th></tr></thead>
                 <tbody>
                     <tr><td class="ref-item-col">Limpidité</td><td class="ref-val-col">${currentWine.ref.limpidity}</td></tr>
-                    <tr><td class="ref-item-col">Intensité Œil</td><td class="ref-val-col">${currentWine.ref.eye_intensity}</td></tr>
                     <tr><td class="ref-item-col">Couleur</td><td class="ref-val-col">${currentWine.ref.color}</td></tr>
-                    <tr><td class="ref-item-col">Impression Nez</td><td class="ref-val-col">${currentWine.ref.nose_impression}</td></tr>
-                    <tr><td class="ref-item-col">Intensité Nez</td><td class="ref-val-col">${currentWine.ref.nose_intensity}</td></tr>
                     <tr><td class="ref-item-col">Arômes Nez</td><td class="ref-val-col">${currentWine.ref.aromas}</td></tr>
-                    <tr><td class="ref-item-col">Sucre</td><td class="ref-val-col">${currentWine.ref.sugar}</td></tr>
-                    <tr><td class="ref-item-col">Alcool</td><td class="ref-val-col">${currentWine.ref.alcohol}</td></tr>
                     <tr><td class="ref-item-col">Acidité</td><td class="ref-val-col">${currentWine.ref.acidity}</td></tr>
                     <tr><td class="ref-item-col">Tanins</td><td class="ref-val-col">${currentWine.ref.tannins}</td></tr>
-                    <tr><td class="ref-item-col">Arômes Bouche</td><td class="ref-val-col">${currentWine.ref.mouth_aromas}</td></tr>
-                    <tr><td class="ref-item-col">Corps</td><td class="ref-val-col">${currentWine.ref.body}</td></tr>
-                    <tr><td class="ref-item-col">Finale</td><td class="ref-val-col">${currentWine.ref.finish}</td></tr>
-                    <tr><td class="ref-item-col">Qualité</td><td class="ref-val-col">${currentWine.ref.quality}</td></tr>
-                    <tr><td class="ref-item-col">Évolution</td><td class="ref-val-col">${currentWine.ref.evolution}</td></tr>
-                    <tr><td class="ref-item-col">Conclusion (2 mots)</td><td class="ref-val-col">${currentWine.ref.twowords}</td></tr>
                 </tbody>
             </table>
         `;
-
         document.getElementById('officialModalBody').innerHTML = html;
         document.getElementById('officialModal').style.display = 'flex';
     }
 
-    function closeOfficialModal() {
-        document.getElementById('officialModal').style.display = 'none';
-    }
-
+    function closeOfficialModal() { document.getElementById('officialModal').style.display = 'none'; }
     function saveDirectFromModal() {
-        if (isAlreadySaved(currentWine)) {
-            alert("❌ Erreur : Fiche déjà enregistrée ! Ce vin existe déjà dans le catalogue.");
-            return;
-        }
-
-        savedWines.unshift({
-            id: Date.now(),
-            ...currentWine
-        });
-        localStorage.setItem('eve_v17_catalog', JSON.stringify(savedWines));
-        alert("💾 Fiche officielle enregistrée dans le catalogue !");
+        if (isAlreadySaved(currentWine)) { alert("Déjà enregistré !"); return; }
+        savedWines.unshift({ id: Date.now(), ...currentWine });
+        localStorage.setItem('eve_v18_catalog', JSON.stringify(savedWines));
+        alert("Enregistré !");
         closeOfficialModal();
         switchTab('history');
     }
 
     function isAlreadySaved(newWine) {
-        return savedWines.some(w => 
-            w.name.toLowerCase() === newWine.name.toLowerCase() &&
-            w.domain.toLowerCase() === newWine.domain.toLowerCase() &&
-            w.year.toString().toLowerCase() === newWine.year.toString().toLowerCase()
-        );
+        return savedWines.some(w => w.name.toLowerCase() === newWine.name.toLowerCase() && w.domain.toLowerCase() === newWine.domain.toLowerCase() && w.year.toString() === newWine.year.toString());
     }
 
     function getRadioValue(name) {
@@ -853,34 +813,17 @@
     }
 
     function showCorrection() {
-        const radioNames = [
-            'limpidity', 'eye_intensity', 'color',
-            'nose_impression', 'nose_intensity',
-            'sugar', 'alcohol', 'acidity', 'tannins', 'body', 'finish',
-            'quality', 'evolution',
-            'sc_comp', 'sc_int', 'sc_bal', 'sc_len'
-        ];
-
         let userValues = {};
-        for (let name of radioNames) {
-            userValues[name] = getRadioValue(name);
-        }
+        const radioNames = ['limpidity', 'eye_intensity', 'color', 'nose_impression', 'nose_intensity', 'sugar', 'alcohol', 'acidity', 'tannins', 'body', 'finish', 'quality', 'evolution', 'sc_comp', 'sc_int', 'sc_bal', 'sc_len'];
+        radioNames.forEach(n => userValues[n] = getRadioValue(n));
 
         userValues.aromas_nose = document.getElementById('aromas_nose').value.trim() || null;
         userValues.aromas_mouth = document.getElementById('aromas_mouth').value.trim() || null;
         userValues.two_words = document.getElementById('two_words').value.trim() || null;
 
-        const scoreComp = userValues.sc_comp ? parseFloat(userValues.sc_comp) : 0;
-        const scoreInt = userValues.sc_int ? parseFloat(userValues.sc_int) : 0;
-        const scoreBal = userValues.sc_bal ? parseFloat(userValues.sc_bal) : 0;
-        const scoreLen = userValues.sc_len ? parseFloat(userValues.sc_len) : 0;
-        userValues.totalScore = scoreComp + scoreInt + scoreBal + scoreLen;
-
         currentWine.user = userValues;
         currentWine.ref = getSmartReference(currentWine);
 
-        let totalChecks = 0;
-        let matchedChecks = 0;
         const rows = [
             { label: "Limpidité", u: userValues.limpidity, r: currentWine.ref.limpidity },
             { label: "Intensité (Œil)", u: userValues.eye_intensity, r: currentWine.ref.eye_intensity },
@@ -900,148 +843,68 @@
             { label: "Conclusion en 2 mots", u: userValues.two_words, r: currentWine.ref.twowords, isText: true }
         ];
 
+        let total = 0, matched = 0;
         rows.forEach(row => {
-            totalChecks++;
-            if (row.u) {
-                if (row.isText) {
-                    let uWords = row.u.toLowerCase().split(/\s+/);
-                    let rWords = row.r.toLowerCase().split(/\s+/);
-                    let common = uWords.filter(w => rWords.includes(w));
-                    if (common.length > 0 || row.u.toLowerCase() === row.r.toLowerCase()) {
-                        matchedChecks += 1;
-                    } else {
-                        matchedChecks += 0.3;
-                    }
-                } else if (row.u.toLowerCase() === row.r.toLowerCase()) {
-                    matchedChecks += 1;
-                }
-            }
+            total++;
+            if (row.u && row.u.toLowerCase() === row.r.toLowerCase()) matched++;
         });
 
-        let matchPercentage = Math.round((matchedChecks / totalChecks) * 100);
-        let comment = "";
-        if (matchPercentage >= 85) comment = "🏆 Excellent ! Perception sensorielle de haut vol, très proche de la référence officielle.";
-        else if (matchPercentage >= 60) comment = "👍 Très bon travail ! Quelques subtilités d'intensité ou d'arômes à ajuster.";
-        else if (matchPercentage >= 35) comment = "🔍 Dégustation correcte mais des écarts notables sur le squelette du vin. À revoir.";
-        else comment = "⚠️ Écart important avec la fiche officielle. Prends le temps d'analyser la correction ci-dessous !";
-
+        let pct = Math.round((matched / total) * 100);
         document.getElementById('matchingScoreBanner').innerHTML = `
             <div class="matching-banner">
-                <div>Score de Matching EVE® : <span class="matching-score">${matchPercentage}%</span></div>
-                <div style="margin-top: 4px; color: #4338ca; font-weight: 500;">${comment}</div>
+                <div>Score de Matching EVE® : <span class="matching-score">${pct}%</span></div>
             </div>
         `;
 
-        document.getElementById('techSheetBox').innerHTML = `
-            <strong>📚 Fiche technique de référence (${currentWine.provenance}) :</strong><br>${currentWine.ref.summary}
-        `;
+        document.getElementById('techSheetBox').innerHTML = `<strong>Référence (${currentWine.provenance}) :</strong><br>${currentWine.ref.summary}`;
 
-        let html = `
-            <p style="margin-bottom:10px;"><strong>${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}] — ${currentWine.provenance}</strong></p>
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th class="item-col">Critère EVE®</th>
-                        <th class="user-col">Votre choix</th>
-                        <th class="ref-col">Référence officielle</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-
-        rows.forEach(row => {
-            let uDisplay = "";
-            if (row.u === null || row.u === "") {
-                uDisplay = `<span class="empty-val">(Vierge)</span>`;
-            } else if (row.isText) {
-                uDisplay = `<span class="match-ok">${row.u}</span>`;
-            } else if (row.u.toLowerCase() === row.r.toLowerCase()) {
-                uDisplay = `<span class="match-ok">${row.u} ✓</span>`;
-            } else {
-                uDisplay = `<span class="match-diff">${row.u} ≠</span>`;
-            }
-
-            html += `
-                <tr>
-                    <td class="item-col">${row.label}</td>
-                    <td class="user-col">${uDisplay}</td>
-                    <td class="ref-col">${row.r}</td>
-                </tr>
-            `;
+        let html = `<table class="comparison-table"><thead><tr><th>Critère</th><th>Votre choix</th><th>Référence</th></tr></thead><tbody>`;
+        rows.forEach(r => {
+            let ok = r.u && r.u.toLowerCase() === r.r.toLowerCase();
+            html += `<tr><td>${r.label}</td><td>${r.u || '(Vierge)'} ${ok ? '✓' : '≠'}</td><td>${r.r}</td></tr>`;
         });
-
         html += `</tbody></table>`;
         document.getElementById('confrontationContainer').innerHTML = html;
         showStep(3);
     }
 
     function saveToLibrary() {
-        if (isAlreadySaved(currentWine)) {
-            alert("❌ Erreur : Fiche déjà enregistrée ! Ce vin existe déjà dans le catalogue.");
-            return;
-        }
-
-        savedWines.unshift({
-            id: Date.now(),
-            ...currentWine
-        });
-        localStorage.setItem('eve_v17_catalog', JSON.stringify(savedWines));
-        alert("💾 Fiche validée enregistrée dans le catalogue !");
+        if (isAlreadySaved(currentWine)) { alert("Déjà enregistré !"); return; }
+        savedWines.unshift({ id: Date.now(), ...currentWine });
+        localStorage.setItem('eve_v18_catalog', JSON.stringify(savedWines));
+        alert("Enregistré dans le catalogue !");
         switchTab('history');
     }
 
     function resetExercise() {
         document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(i => i.value = '');
         document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
-        document.getElementById('imagePreviewContainer').style.display = 'none';
         showStep(1);
     }
 
     function initFilters() {
         const provSelect = document.getElementById('filterProv');
         const yearSelect = document.getElementById('filterYear');
-        
         let provs = [...new Set(savedWines.map(w => w.provenance))];
         let years = [...new Set(savedWines.map(w => w.year))];
-
-        provSelect.innerHTML = `<option value="">Toutes les régions</option>` + provs.map(p => `<option value="${p}">${p}</option>`).join('');
-        yearSelect.innerHTML = `<option value="">Tous les millésimes</option>` + years.map(y => `<option value="${y}">${y}</option>`).join('');
+        provSelect.innerHTML = `<option value="">Toutes</option>` + provs.map(p => `<option value="${p}">${p}</option>`).join('');
+        yearSelect.innerHTML = `<option value="">Tous</option>` + years.map(y => `<option value="${y}">${y}</option>`).join('');
     }
 
     function sortCatalog(field) {
-        if (currentSort.field === field) {
-            currentSort.asc = !currentSort.asc;
-        } else {
-            currentSort.field = field;
-            currentSort.asc = true;
-        }
+        if (currentSort.field === field) currentSort.asc = !currentSort.asc;
+        else { currentSort.field = field; currentSort.asc = true; }
         renderCatalog();
     }
 
     function renderCatalog() {
-        const colorFilter = document.getElementById('filterColor').value;
-        const provFilter = document.getElementById('filterProv').value;
-        const yearFilter = document.getElementById('filterYear').value;
+        const cf = document.getElementById('filterColor').value;
+        const pf = document.getElementById('filterProv').value;
+        const yf = document.getElementById('filterYear').value;
 
-        let filtered = savedWines.filter(w => {
-            return (!colorFilter || w.typeCat === colorFilter) &&
-                   (!provFilter || w.provenance === provFilter) &&
-                   (!yearFilter || w.year.toString() === yearFilter.toString());
-        });
-
-        filtered.sort((a, b) => {
-            let valA = (a[currentSort.field] || "").toString().toLowerCase();
-            let valB = (b[currentSort.field] || "").toString().toLowerCase();
-            if (valA < valB) return currentSort.asc ? -1 : 1;
-            if (valA > valB) return currentSort.asc ? 1 : -1;
-            return 0;
-        });
-
+        let filtered = savedWines.filter(w => (!cf || w.typeCat === cf) && (!pf || w.provenance === pf) && (!yf || w.year.toString() === yf.toString()));
         const tbody = document.getElementById('catalogTableBody');
-        if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b;">Aucune fiche correspondante dans le catalogue.</td></tr>`;
-            return;
-        }
+        if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Aucune fiche.</td></tr>`; return; }
 
         tbody.innerHTML = filtered.map(w => `
             <tr class="catalog-row" id="row-${w.id}">
@@ -1050,9 +913,9 @@
                 <td onclick="openModal(${w.id}, event)" class="cell-year">${w.year}</td>
                 <td onclick="openModal(${w.id}, event)" class="cell-type">${w.typeCat}</td>
                 <td onclick="openModal(${w.id}, event)" class="cell-prov">${w.provenance}</td>
-                <td style="text-align: center; white-space: nowrap;">
+                <td style="text-align:center; white-space:nowrap;">
                     <button class="btn-warning" id="btn-edit-${w.id}" onclick="toggleEdit(${w.id}, event)">Éditer</button>
-                    <button class="btn-danger" onclick="deleteWine(${w.id}, event)">Supprimer</button>
+                    <button class="btn-danger" onclick="deleteWine(${w.id}, event)">Suppr</button>
                 </td>
             </tr>
         `).join('');
@@ -1066,104 +929,43 @@
         if (!w) return;
 
         const isEditing = btnEdit.innerText === "Valider";
-
         if (!isEditing) {
             btnEdit.innerText = "Valider";
             btnEdit.style.background = "var(--success)";
-
             row.querySelector('.cell-name').innerHTML = `<input type="text" class="inline-edit-input" id="edit-name-${id}" value="${w.name}" onclick="event.stopPropagation()">`;
             row.querySelector('.cell-domain').innerHTML = `<input type="text" class="inline-edit-input" id="edit-domain-${id}" value="${w.domain}" onclick="event.stopPropagation()">`;
             row.querySelector('.cell-year').innerHTML = `<input type="text" class="inline-edit-input" id="edit-year-${id}" value="${w.year}" onclick="event.stopPropagation()">`;
-            
             let typeOptions = ["Vin Rouge", "Vin Blanc", "Vin Rosé", "Vin Pétillant", "Vin Orange", "Vin Moelleux / Liquoreux"];
-            let selectHtml = `<select class="inline-edit-input" id="edit-type-${id}" onclick="event.stopPropagation()">` + 
-                typeOptions.map(t => `<option value="${t}" ${t === w.typeCat ? 'selected' : ''}>${t}</option>`).join('') + 
-                `</select>`;
-            row.querySelector('.cell-type').innerHTML = selectHtml;
-
+            row.querySelector('.cell-type').innerHTML = `<select class="inline-edit-input" id="edit-type-${id}" onclick="event.stopPropagation()">` + typeOptions.map(t => `<option value="${t}" ${t === w.typeCat ? 'selected' : ''}>${t}</option>`).join('') + `</select>`;
             row.querySelector('.cell-prov').innerHTML = `<input type="text" class="inline-edit-input" id="edit-prov-${id}" value="${w.provenance}" onclick="event.stopPropagation()">`;
-
         } else {
-            let newName = document.getElementById(`edit-name-${id}`).value.trim();
-            let newDomain = document.getElementById(`edit-domain-${id}`).value.trim();
-            let newYear = document.getElementById(`edit-year-${id}`).value.trim();
-            let newType = document.getElementById(`edit-type-${id}`).value;
-            let newProv = document.getElementById(`edit-prov-${id}`).value.trim();
-
-            if (!newName || !newDomain || !newYear || !newProv) {
-                alert("❌ Les champs ne peuvent pas être vides.");
-                return;
-            }
-
-            w.name = newName;
-            w.domain = newDomain;
-            w.year = newYear;
-            w.typeCat = newType;
-            w.provenance = newProv;
-
-            localStorage.setItem('eve_v17_catalog', JSON.stringify(savedWines));
+            w.name = document.getElementById(`edit-name-${id}`).value.trim();
+            w.domain = document.getElementById(`edit-domain-${id}`).value.trim();
+            w.year = document.getElementById(`edit-year-${id}`).value.trim();
+            w.typeCat = document.getElementById(`edit-type-${id}`).value;
+            w.provenance = document.getElementById(`edit-prov-${id}`).value.trim();
+            localStorage.setItem('eve_v18_catalog', JSON.stringify(savedWines));
             renderCatalog();
         }
     }
 
     function deleteWine(id, event) {
         event.stopPropagation();
-        if (confirm("Voulez-vous vraiment supprimer cette fiche du catalogue ?")) {
+        if (confirm("Supprimer ?")) {
             savedWines = savedWines.filter(w => w.id !== id);
-            localStorage.setItem('eve_v17_catalog', JSON.stringify(savedWines));
-            initFilters();
+            localStorage.setItem('eve_v18_catalog', JSON.stringify(savedWines));
             renderCatalog();
         }
     }
 
     function openModal(id, event) {
         if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' || event.target.tagName === 'BUTTON') return;
-
         const w = savedWines.find(item => item.id === id);
         if (!w) return;
-
-        let html = `
-            <h3 style="background:var(--primary); color:#fff; padding:10px; border-radius:8px; margin-bottom:15px;">
-                ${w.name} - ${w.domain} (${w.year}) [${w.typeCat}] — Région : ${w.provenance}
-            </h3>
-            <div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-bottom:12px; font-size:0.85rem;">
-                <em>${w.ref.summary}</em>
-            </div>
-            <table class="ref-table">
-                <thead>
-                    <tr>
-                        <th class="ref-item-col">Critère EVE®</th>
-                        <th class="ref-val-col">Référence Officielle</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td class="ref-item-col">Limpidité</td><td class="ref-val-col">${w.ref.limpidity}</td></tr>
-                    <tr><td class="ref-item-col">Intensité Œil</td><td class="ref-val-col">${w.ref.eye_intensity}</td></tr>
-                    <tr><td class="ref-item-col">Couleur</td><td class="ref-val-col">${w.ref.color}</td></tr>
-                    <tr><td class="ref-item-col">Impression Nez</td><td class="ref-val-col">${w.ref.nose_impression}</td></tr>
-                    <tr><td class="ref-item-col">Intensité Nez</td><td class="ref-val-col">${w.ref.nose_intensity}</td></tr>
-                    <tr><td class="ref-item-col">Arômes Nez</td><td class="ref-val-col">${w.ref.aromas}</td></tr>
-                    <tr><td class="ref-item-col">Sucre</td><td class="ref-val-col">${w.ref.sugar}</td></tr>
-                    <tr><td class="ref-item-col">Alcool</td><td class="ref-val-col">${w.ref.alcohol}</td></tr>
-                    <tr><td class="ref-item-col">Acidité</td><td class="ref-val-col">${w.ref.acidity}</td></tr>
-                    <tr><td class="ref-item-col">Tanins</td><td class="ref-val-col">${w.ref.tannins}</td></tr>
-                    <tr><td class="ref-item-col">Arômes Bouche</td><td class="ref-val-col">${w.ref.mouth_aromas}</td></tr>
-                    <tr><td class="ref-item-col">Corps</td><td class="ref-val-col">${w.ref.body}</td></tr>
-                    <tr><td class="ref-item-col">Finale</td><td class="ref-val-col">${w.ref.finish}</td></tr>
-                    <tr><td class="ref-item-col">Qualité</td><td class="ref-val-col">${w.ref.quality}</td></tr>
-                    <tr><td class="ref-item-col">Évolution</td><td class="ref-val-col">${w.ref.evolution}</td></tr>
-                    <tr><td class="ref-item-col">Conclusion (2 mots)</td><td class="ref-val-col">${w.ref.twowords}</td></tr>
-                </tbody>
-            </table>
-        `;
-
-        document.getElementById('modalBody').innerHTML = html;
+        document.getElementById('modalBody').innerHTML = `<h3>${w.name} - ${w.domain} (${w.year}) [${w.typeCat}]</h3><p><em>${w.ref.summary}</em></p>`;
         document.getElementById('catalogModal').style.display = 'flex';
     }
-
-    function closeModal() {
-        document.getElementById('catalogModal').style.display = 'none';
-    }
+    function closeModal() { document.getElementById('catalogModal').style.display = 'none'; }
 </script>
 
 </body>
