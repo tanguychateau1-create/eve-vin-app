@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard EVE® - Application Mobile</title>
+    <title>Dashboard EVE® - Application Mobile Complète</title>
     <!-- Manifeste PWA intégré pour installation mobile -->
     <link rel="manifest" href="data:application/manifest+json,{
         'name': 'Dashboard EVE',
@@ -147,7 +147,7 @@
 <div class="container">
     <header>
         <h1>Dashboard EVE® Mobile</h1>
-        <p class="subtitle">Fiche Officielle, Caméra & Catalogue Adaptatif</p>
+        <p class="subtitle">Fiche de Dégustation Complète, Caméra & Catalogue</p>
     </header>
 
     <div class="tabs">
@@ -188,7 +188,7 @@
             <button class="btn btn-secondary" onclick="openOfficialSheetDirect()">Afficher la fiche officielle</button>
         </div>
 
-        <!-- ÉTAPE 2 : Fiche cochable -->
+        <!-- ÉTAPE 2 : Fiche cochable complète -->
         <div id="step-2" class="card step-section">
             <h2>Étape 2/3 : Fiche de Dégustation EVE®</h2>
             <p style="margin-bottom: 12px; font-size: 0.85rem; color: #475569;">
@@ -274,7 +274,7 @@
 
             <div class="form-group">
                 <label class="group-label" for="aromas_nose">Arômes (Nez)</label>
-                <textarea id="aromas_nose" rows="2" placeholder="Ex: Cerise griotte, framboise..."></textarea>
+                <textarea id="aromas_nose" rows="2" placeholder="Ex: Cerise griotte, framboise, épices..."></textarea>
             </div>
 
             <!-- 3. BOUCHE -->
@@ -325,7 +325,7 @@
 
             <div class="form-group">
                 <label class="group-label" for="aromas_mouth">Arômes en bouche</label>
-                <textarea id="aromas_mouth" rows="2" placeholder="Ex: Petits fruits rouges..."></textarea>
+                <textarea id="aromas_mouth" rows="2" placeholder="Ex: Petits fruits rouges, noyau de cerise..."></textarea>
             </div>
 
             <div class="form-group">
@@ -437,7 +437,6 @@
             <h2>📷 Scanner une étiquette ou importer une capture</h2>
             <div class="import-box">
                 <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 8px;">Utilise l'appareil photo de ton téléphone ou choisis un fichier :</p>
-                <!-- Bouton direct Caméra mobile -->
                 <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleFileImport(event)" style="display:none;">
                 <button class="btn btn-camera" onclick="document.getElementById('cameraInput').click()">📸 Prendre en photo une étiquette</button>
                 
@@ -517,7 +516,7 @@
 </div>
 
 <script>
-    let savedWines = JSON.parse(localStorage.getItem('eve_v14_catalog')) || [];
+    let savedWines = JSON.parse(localStorage.getItem('eve_v15_catalog')) || [];
     let currentWine = {};
     let currentSort = { field: 'name', asc: true };
 
@@ -595,7 +594,7 @@
             reader.onload = function(e) {
                 previewImg.src = e.target.result;
                 previewImg.style.display = 'block';
-                textArea.value = "[Photo / Étiquette capturée] Analyse instantanée : Vin Rosé de Provence détecté.";
+                textArea.value = "[Photo / Étiquette capturée] Analyse instantanée : Vin détecté.";
             };
             reader.readAsDataURL(file);
         } else {
@@ -614,11 +613,11 @@
         }
 
         currentWine = {
-            name: "Côtes de Provence",
-            domain: "Château Sainte Roseline",
-            year: "2023",
-            typeCat: "Vin Rosé",
-            provenance: "Provence"
+            name: "Savigny-lès-Beaune",
+            domain: "Domaine Masse",
+            year: "2020",
+            typeCat: "Vin Rouge",
+            provenance: "Bourgogne"
         };
         currentWine.ref = getSmartReference(currentWine);
 
@@ -635,6 +634,7 @@
                     <tr><td class="ref-item-col">Couleur</td><td class="ref-val-col">${currentWine.ref.color}</td></tr>
                     <tr><td class="ref-item-col">Arômes Nez</td><td class="ref-val-col">${currentWine.ref.aromas}</td></tr>
                     <tr><td class="ref-item-col">Acidité</td><td class="ref-val-col">${currentWine.ref.acidity}</td></tr>
+                    <tr><td class="ref-item-col">Tanins</td><td class="ref-val-col">${currentWine.ref.tannins}</td></tr>
                 </tbody>
             </table>
         `;
@@ -733,12 +733,24 @@
                 <em>${currentWine.ref.summary}</em>
             </div>
             <table class="ref-table">
-                <thead><tr><th class="ref-item-col">Critère</th><th class="ref-val-col">Référence</th></tr></thead>
+                <thead><tr><th class="ref-item-col">Critère EVE®</th><th class="ref-val-col">Référence</th></tr></thead>
                 <tbody>
+                    <tr><td class="ref-item-col">Limpidité</td><td class="ref-val-col">${currentWine.ref.limpidity}</td></tr>
+                    <tr><td class="ref-item-col">Intensité Œil</td><td class="ref-val-col">${currentWine.ref.eye_intensity}</td></tr>
                     <tr><td class="ref-item-col">Couleur</td><td class="ref-val-col">${currentWine.ref.color}</td></tr>
+                    <tr><td class="ref-item-col">Impression Nez</td><td class="ref-val-col">${currentWine.ref.nose_impression}</td></tr>
+                    <tr><td class="ref-item-col">Intensité Nez</td><td class="ref-val-col">${currentWine.ref.nose_intensity}</td></tr>
                     <tr><td class="ref-item-col">Arômes Nez</td><td class="ref-val-col">${currentWine.ref.aromas}</td></tr>
+                    <tr><td class="ref-item-col">Sucre</td><td class="ref-val-col">${currentWine.ref.sugar}</td></tr>
+                    <tr><td class="ref-item-col">Alcool</td><td class="ref-val-col">${currentWine.ref.alcohol}</td></tr>
                     <tr><td class="ref-item-col">Acidité</td><td class="ref-val-col">${currentWine.ref.acidity}</td></tr>
                     <tr><td class="ref-item-col">Tanins</td><td class="ref-val-col">${currentWine.ref.tannins}</td></tr>
+                    <tr><td class="ref-item-col">Arômes Bouche</td><td class="ref-val-col">${currentWine.ref.mouth_aromas}</td></tr>
+                    <tr><td class="ref-item-col">Corps</td><td class="ref-val-col">${currentWine.ref.body}</td></tr>
+                    <tr><td class="ref-item-col">Finale</td><td class="ref-val-col">${currentWine.ref.finish}</td></tr>
+                    <tr><td class="ref-item-col">Qualité</td><td class="ref-val-col">${currentWine.ref.quality}</td></tr>
+                    <tr><td class="ref-item-col">Évolution</td><td class="ref-val-col">${currentWine.ref.evolution}</td></tr>
+                    <tr><td class="ref-item-col">Conclusion</td><td class="ref-val-col">${currentWine.ref.twowords}</td></tr>
                 </tbody>
             </table>
         `;
@@ -750,7 +762,7 @@
     function saveDirectFromModal() {
         if (isAlreadySaved(currentWine)) { alert("Déjà enregistré !"); return; }
         savedWines.unshift({ id: Date.now(), ...currentWine });
-        localStorage.setItem('eve_v14_catalog', JSON.stringify(savedWines));
+        localStorage.setItem('eve_v15_catalog', JSON.stringify(savedWines));
         alert("Enregistré !");
         closeOfficialModal();
         switchTab('history');
@@ -777,33 +789,57 @@
         currentWine.user = userValues;
         currentWine.ref = getSmartReference(currentWine);
 
-        let total = 0, matched = 0;
         const rows = [
             { label: "Limpidité", u: userValues.limpidity, r: currentWine.ref.limpidity },
+            { label: "Intensité (Œil)", u: userValues.eye_intensity, r: currentWine.ref.eye_intensity },
             { label: "Couleur", u: userValues.color, r: currentWine.ref.color },
-            { label: "Nez", u: userValues.nose_impression, r: currentWine.ref.nose_impression },
+            { label: "Impression (Nez)", u: userValues.nose_impression, r: currentWine.ref.nose_impression },
+            { label: "Intensité (Nez)", u: userValues.nose_intensity, r: currentWine.ref.nose_intensity },
+            { label: "Arômes (Nez)", u: userValues.aromas_nose, r: currentWine.ref.aromas, isText: true },
+            { label: "Sucre", u: userValues.sugar, r: currentWine.ref.sugar },
+            { label: "Alcool", u: userValues.alcohol, r: currentWine.ref.alcohol },
             { label: "Acidité", u: userValues.acidity, r: currentWine.ref.acidity },
-            { label: "Tanins", u: userValues.tannins, r: currentWine.ref.tannins }
+            { label: "Tanins", u: userValues.tannins, r: currentWine.ref.tannins },
+            { label: "Arômes en bouche", u: userValues.aromas_mouth, r: currentWine.ref.mouth_aromas, isText: true },
+            { label: "Corps", u: userValues.body, r: currentWine.ref.body },
+            { label: "Finale", u: userValues.finish, r: currentWine.ref.finish },
+            { label: "Qualité", u: userValues.quality, r: currentWine.ref.quality },
+            { label: "Évolution", u: userValues.evolution, r: currentWine.ref.evolution },
+            { label: "Conclusion en 2 mots", u: userValues.two_words, r: currentWine.ref.twowords, isText: true }
         ];
 
+        let total = 0, matched = 0;
         rows.forEach(row => {
             total++;
-            if (row.u && row.u.toLowerCase() === row.r.toLowerCase()) matched++;
+            if (row.u) {
+                if (row.isText) {
+                    let uWords = row.u.toLowerCase().split(/\s+/);
+                    let rWords = row.r.toLowerCase().split(/\s+/);
+                    let common = uWords.filter(w => rWords.includes(w));
+                    if (common.length > 0 || row.u.toLowerCase() === row.r.toLowerCase()) matched += 1;
+                    else matched += 0.3;
+                } else if (row.u.toLowerCase() === row.r.toLowerCase()) {
+                    matched += 1;
+                }
+            }
         });
 
         let pct = Math.round((matched / total) * 100);
+        let comment = pct >= 85 ? "🏆 Excellent ! Très proche de la référence officielle." : pct >= 60 ? "👍 Très bon travail ! Quelques subtilités à ajuster." : "🔍 Écarts notables sur le profil du vin.";
+
         document.getElementById('matchingScoreBanner').innerHTML = `
             <div class="matching-banner">
-                <div>Score de Matching : <span class="matching-score">${pct}%</span></div>
+                <div>Score de Matching EVE® : <span class="matching-score">${pct}%</span></div>
+                <div style="margin-top: 4px; color: #4338ca; font-weight: 500;">${comment}</div>
             </div>
         `;
 
-        document.getElementById('techSheetBox').innerHTML = `<strong>Référence (${currentWine.provenance}) :</strong><br>${currentWine.ref.summary}`;
+        document.getElementById('techSheetBox').innerHTML = `<strong>📚 Fiche technique de référence (${currentWine.provenance}) :</strong><br>${currentWine.ref.summary}`;
 
-        let html = `<table class="comparison-table"><thead><tr><th>Critère</th><th>Votre choix</th><th>Référence</th></tr></thead><tbody>`;
+        let html = `<table class="comparison-table"><thead><tr><th>Critère EVE®</th><th>Votre choix</th><th>Référence</th></tr></thead><tbody>`;
         rows.forEach(r => {
             let ok = r.u && r.u.toLowerCase() === r.r.toLowerCase();
-            html += `<tr><td>${r.label}</td><td>${r.u || '(Vierge)'} ${ok ? '✓' : '≠'}</td><td>${r.r}</td></tr>`;
+            html += `<tr><td>${r.label}</td><td>${r.u || '(Vierge)'} ${ok ? '✓' : ''}</td><td>${r.r}</td></tr>`;
         });
         html += `</tbody></table>`;
         document.getElementById('confrontationContainer').innerHTML = html;
@@ -813,7 +849,7 @@
     function saveToLibrary() {
         if (isAlreadySaved(currentWine)) { alert("Déjà enregistré !"); return; }
         savedWines.unshift({ id: Date.now(), ...currentWine });
-        localStorage.setItem('eve_v14_catalog', JSON.stringify(savedWines));
+        localStorage.setItem('eve_v15_catalog', JSON.stringify(savedWines));
         alert("Enregistré dans le catalogue !");
         switchTab('history');
     }
@@ -859,7 +895,7 @@
         event.stopPropagation();
         if (confirm("Supprimer ?")) {
             savedWines = savedWines.filter(w => w.id !== id);
-            localStorage.setItem('eve_v14_catalog', JSON.stringify(savedWines));
+            localStorage.setItem('eve_v15_catalog', JSON.stringify(savedWines));
             renderCatalog();
         }
     }
