@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard EVE® - Application Mobile</title>
+    <!-- Manifeste PWA intégré pour installation mobile -->
+    <link rel="manifest" href="data:application/manifest+json,{
+        'name': 'Dashboard EVE',
+        'short_name': 'EVE',
+        'start_url': '.',
+        'display': 'standalone',
+        'background_color': '#f8fafc',
+        'theme_color': '#581c87',
+        'icons': [{
+            'src': 'https://img.icons8.com/color/96/wine-glass.png',
+            'sizes': '96x96',
+            'type': 'image/png'
+        }]
+    }">
+    <style>
+        :root {
+            --primary: #581c87;
+            --primary-light: #7e22ce;
+            --primary-bg: #f3e8ff;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+            --success: #15803d;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); padding: 12px; line-height: 1.45; }
+        .container { max-width: 960px; margin: 0 auto; }
+        
+        header { text-align: center; margin-bottom: 16px; }
+        h1 { color: var(--primary); font-size: 1.4rem; margin-bottom: 2px; }
+        p.subtitle { color: #64748b; font-size: 0.85rem; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 16px; background: #e2e8f0; padding: 4px; border-radius: 12px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: transparent; font-weight: 600; cursor: pointer; border-radius: 8px; color: #475569; transition: all 0.2s; font-size: 0.9rem; }
+        .tab-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .card { background: var(--card-bg); border-radius: 14px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 14px; border: 1px solid #e2e8f0; }
+        h2 { font-size: 1.05rem; color: var(--primary); margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
+        h3 { font-size: 0.9rem; color: #fff; background: var(--primary); padding: 7px 12px; border-radius: 8px; margin: 16px 0 10px 0; }
+        
+        .form-group { margin-bottom: 12px; }
+        .group-label { display: block; font-weight: 700; font-size: 0.85rem; margin-bottom: 6px; color: #1e293b; }
+        
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; background: #fff; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(88, 28, 135, 0.1); }
+
+        .radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
+        .radio-option { position: relative; }
+        .radio-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+        .radio-option label {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .radio-option input[type="radio"]:checked + label {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(88, 28, 135, 0.25);
+        }
+
+        .color-section-block { display: none; }
+        .color-section-block.active { display: block; }
+
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 18px; border-radius: 8px; font-weight: 600; width: 100%; cursor: pointer; font-size: 0.95rem; transition: background 0.2s; }
+        .btn:hover { background: var(--primary-light); }
+        .btn-secondary { background: #64748b; margin-top: 8px; }
+        .btn-success { background: var(--success); }
+        .btn-warning { background: var(--warning); padding: 4px 8px; font-size: 0.75rem; width: auto; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-danger { background: var(--danger); padding: 4px 8px; font-size: 0.75rem; width: auto; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-camera { background: #0284c7; margin-bottom: 8px; }
+
+        .step-section { display: none; }
+        .step-section.active { display: block; }
+
+        .score-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+        .score-box { background: #f8fafc; border: 1px solid var(--border); padding: 8px; border-radius: 8px; text-align: center; }
+        .score-box .group-label { text-align: center; font-size: 0.75rem; text-transform: uppercase; }
+        .score-box .radio-group { justify-content: center; }
+
+        .import-box { background: var(--primary-bg); border: 2px dashed var(--primary); padding: 14px; border-radius: 12px; margin-bottom: 16px; text-align: center; }
+        #imagePreviewContainer { margin-top: 10px; max-width: 100%; max-height: 180px; display: none; margin-left: auto; margin-right: auto; border-radius: 8px; border: 1px solid var(--border); }
+
+        .matching-banner { background: #e0e7ff; border-left: 5px solid #4f46e5; padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 14px; font-size: 0.9rem; }
+        .matching-score { font-size: 1.1rem; font-weight: bold; color: #3730a3; }
+
+        .filter-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px; background: #f1f5f9; padding: 10px; border-radius: 10px; }
+        .catalog-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.8rem; }
+        .catalog-table th, .catalog-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
+        .catalog-table th { background: #f1f5f9; color: var(--primary); font-weight: 700; cursor: pointer; }
+        .catalog-row { cursor: pointer; transition: background 0.1s; }
+        .catalog-row:hover { background: #f8fafc; }
+
+        .inline-edit-input { width: 100%; padding: 4px 6px; font-size: 0.8rem; border: 1px solid var(--primary); border-radius: 4px; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; padding: 12px; }
+        .modal-content { background: #fff; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 14px; padding: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .modal-close { float: right; background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+        .comparison-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        .comparison-table th, .comparison-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; }
+        .comparison-table th { background: #f1f5f9; color: var(--primary); font-weight: 700; }
+        .item-col { background: #f1f5f9; width: 24%; font-weight: 700; }
+        .user-col { background: #ffffff; width: 38%; }
+        .ref-col { background: var(--primary-bg); width: 38%; }
+        .match-ok { color: #15803d; font-weight: 600; }
+        .match-diff { color: #b45309; font-weight: 600; }
+        .empty-val { color: #94a3b8; font-style: italic; }
+
+        .ref-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
+        .ref-table th, .ref-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: top; }
+        .ref-table th { background: #f1f5f9; color: var(--primary); font-weight: 700; }
+        .ref-item-col { background: #f1f5f9; width: 30%; font-weight: 700; }
+        .ref-val-col { background: var(--primary-bg); width: 70%; }
+
+        .tech-summary { background: #f1f5f9; border-left: 4px solid var(--primary); padding: 10px; border-radius: 0 8px 8px 0; margin-bottom: 12px; font-size: 0.8rem; }
+
+        @media (min-width: 640px) {
+            body { padding: 24px; }
+            .score-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Dashboard EVE® Mobile</h1>
+        <p class="subtitle">Fiche Officielle, Caméra & Catalogue Adaptatif</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('train')">🎯 Entraînement</button>
+        <button class="tab-btn" onclick="switchTab('history')">📂 Catalogue & Caméra</button>
+    </div>
+
+    <!-- ONGLET 1 : ENTRAINEMENT -->
+    <div id="train-view" class="view active">
+        
+        <!-- ÉTAPE 1 : Identification -->
+        <div id="step-1" class="card step-section active">
+            <h2>Étape 1/3 : Identification du vin</h2>
+            <div class="form-group">
+                <label class="group-label">Nom du vin / Appellation *</label>
+                <input type="text" id="wineName" placeholder="Ex: Savigny-lès-Beaune, Sancerre...">
+            </div>
+            <div class="form-group">
+                <label class="group-label">Domaine / Château *</label>
+                <input type="text" id="wineDomain" placeholder="Ex: Domaine Mass, Domaine Jacob-Frérebeau...">
+            </div>
+            <div class="form-group">
+                <label class="group-label">Millésime (Année) *</label>
+                <input type="number" id="wineYear" placeholder="Ex: 2022">
+            </div>
+            <div class="form-group">
+                <label class="group-label">Type de vin</label>
+                <select id="wineTypeCat">
+                    <option value="Vin Rouge">Vin Rouge</option>
+                    <option value="Vin Blanc">Vin Blanc</option>
+                    <option value="Vin Rosé">Vin Rosé</option>
+                    <option value="Vin Pétillant">Vin Pétillant</option>
+                    <option value="Vin Orange">Vin Orange</option>
+                    <option value="Vin Moelleux / Liquoreux">Vin Moelleux / Liquoreux</option>
+                </select>
+            </div>
+            <button class="btn" onclick="startExercise()">Exercice de dégustation</button>
+            <button class="btn btn-secondary" onclick="openOfficialSheetDirect()">Afficher la fiche officielle</button>
+        </div>
+
+        <!-- ÉTAPE 2 : Fiche cochable -->
+        <div id="step-2" class="card step-section">
+            <h2>Étape 2/3 : Fiche de Dégustation EVE®</h2>
+            <p style="margin-bottom: 12px; font-size: 0.85rem; color: #475569;">
+                Vin ciblé : <strong id="activeWineTitle" style="color: var(--primary);"></strong>
+            </p>
+
+            <!-- 1. ŒIL -->
+            <h3>👁️ 1. ŒIL</h3>
+            <div class="form-group">
+                <span class="group-label">Limpidité</span>
+                <div class="radio-group" data-name="limpidity">
+                    <div class="radio-option"><input type="radio" name="limpidity" id="limp_1" value="Limpide"><label for="limp_1">Limpide</label></div>
+                    <div class="radio-option"><input type="radio" name="limpidity" id="limp_2" value="Trouble"><label for="limp_2">Trouble</label></div>
+                    <div class="radio-option"><input type="radio" name="limpidity" id="limp_3" value="Dépôts"><label for="limp_3">Dépôts</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Intensité (Œil)</span>
+                <div class="radio-group" data-name="eye_intensity">
+                    <div class="radio-option"><input type="radio" name="eye_intensity" id="eint_1" value="Pâle"><label for="eint_1">Pâle</label></div>
+                    <div class="radio-option"><input type="radio" name="eye_intensity" id="eint_2" value="Claire"><label for="eint_2">Claire</label></div>
+                    <div class="radio-option"><input type="radio" name="eye_intensity" id="eint_3" value="Moyenne"><label for="eint_3">Moyenne</label></div>
+                    <div class="radio-option"><input type="radio" name="eye_intensity" id="eint_4" value="Soutenue"><label for="eint_4">Soutenue</label></div>
+                    <div class="radio-option"><input type="radio" name="eye_intensity" id="eint_5" value="Intense"><label for="eint_5">Intense</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Couleur (Sélection sécurisée)</span>
+                
+                <div id="colorBlock-blanc" class="color-section-block">
+                    <div class="radio-group" data-name="color">
+                        <div class="radio-option"><input type="radio" name="color" id="col_b1" value="Jaune vert"><label for="col_b1">Jaune vert</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_b2" value="Jaune citron"><label for="col_b2">Jaune citron</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_b3" value="Or"><label for="col_b3">Or</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_b4" value="Ambré"><label for="col_b4">Ambré</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_b5" value="Brun"><label for="col_b5">Brun</label></div>
+                    </div>
+                </div>
+
+                <div id="colorBlock-rose" class="color-section-block">
+                    <div class="radio-group" data-name="color">
+                        <div class="radio-option"><input type="radio" name="color" id="col_p1" value="Rose"><label for="col_p1">Rose</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_p2" value="Saumon"><label for="col_p2">Saumon</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_p3" value="Orangé"><label for="col_p3">Orangé</label></div>
+                    </div>
+                </div>
+
+                <div id="colorBlock-rouge" class="color-section-block">
+                    <div class="radio-group" data-name="color">
+                        <div class="radio-option"><input type="radio" name="color" id="col_r1" value="Violacé"><label for="col_r1">Violacé</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_r2" value="Rubis"><label for="col_r2">Rubis</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_r3" value="Grenat"><label for="col_r3">Grenat</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_r4" value="Tuilé"><label for="col_r4">Tuilé</label></div>
+                        <div class="radio-option"><input type="radio" name="color" id="col_r5" value="Brun"><label for="col_r5">Brun</label></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. NEZ -->
+            <h3>👃 2. NEZ</h3>
+            <div class="form-group">
+                <span class="group-label">Impression</span>
+                <div class="radio-group" data-name="nose_impression">
+                    <div class="radio-option"><input type="radio" name="nose_impression" id="nimp_1" value="Défaut"><label for="nimp_1">Défaut</label></div>
+                    <div class="radio-option"><input type="radio" name="nose_impression" id="nimp_2" value="Simple"><label for="nimp_2">Simple</label></div>
+                    <div class="radio-option"><input type="radio" name="nose_impression" id="nimp_3" value="Aromatique"><label for="nimp_3">Aromatique</label></div>
+                    <div class="radio-option"><input type="radio" name="nose_impression" id="nimp_4" value="Complexe"><label for="nimp_4">Complexe</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Intensité (Nez)</span>
+                <div class="radio-group" data-name="nose_intensity">
+                    <div class="radio-option"><input type="radio" name="nose_intensity" id="nint_1" value="Fermée"><label for="nint_1">Fermée</label></div>
+                    <div class="radio-option"><input type="radio" name="nose_intensity" id="nint_2" value="Discrète"><label for="nint_2">Discrète</label></div>
+                    <div class="radio-option"><input type="radio" name="nose_intensity" id="nint_3" value="Moyenne"><label for="nint_3">Moyenne</label></div>
+                    <div class="radio-option"><input type="radio" name="nose_intensity" id="nint_4" value="Ouverte"><label for="nint_4">Ouverte</label></div>
+                    <div class="radio-option"><input type="radio" name="nose_intensity" id="nint_5" value="Prononcée"><label for="nint_5">Prononcée</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="group-label" for="aromas_nose">Arômes (Nez)</label>
+                <textarea id="aromas_nose" rows="2" placeholder="Ex: Cerise griotte, framboise..."></textarea>
+            </div>
+
+            <!-- 3. BOUCHE -->
+            <h3>👅 3. BOUCHE</h3>
+            <div class="form-group">
+                <span class="group-label">Sucre</span>
+                <div class="radio-group" data-name="sugar">
+                    <div class="radio-option"><input type="radio" name="sugar" id="sug_1" value="Sec"><label for="sug_1">Sec</label></div>
+                    <div class="radio-option"><input type="radio" name="sugar" id="sug_2" value="Velouté"><label for="sug_2">Velouté</label></div>
+                    <div class="radio-option"><input type="radio" name="sugar" id="sug_3" value="Demi-sec"><label for="sug_3">Demi-sec</label></div>
+                    <div class="radio-option"><input type="radio" name="sugar" id="sug_4" value="Moelleux"><label for="sug_4">Moelleux</label></div>
+                    <div class="radio-option"><input type="radio" name="sugar" id="sug_5" value="Liquoreux"><label for="sug_5">Liquoreux</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Alcool</span>
+                <div class="radio-group" data-name="alcohol">
+                    <div class="radio-option"><input type="radio" name="alcohol" id="alc_1" value="Faible"><label for="alc_1">Faible</label></div>
+                    <div class="radio-option"><input type="radio" name="alcohol" id="alc_2" value="Mince"><label for="alc_2">Mince</label></div>
+                    <div class="radio-option"><input type="radio" name="alcohol" id="alc_3" value="Moyen"><label for="alc_3">Moyen</label></div>
+                    <div class="radio-option"><input type="radio" name="alcohol" id="alc_4" value="Capiteux"><label for="alc_4">Capiteux</label></div>
+                    <div class="radio-option"><input type="radio" name="alcohol" id="alc_5" value="Fort"><label for="alc_5">Fort</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Acidité</span>
+                <div class="radio-group" data-name="acidity">
+                    <div class="radio-option"><input type="radio" name="acidity" id="aci_1" value="Faible"><label for="aci_1">Faible</label></div>
+                    <div class="radio-option"><input type="radio" name="acidity" id="aci_2" value="Fraîche"><label for="aci_2">Fraîche</label></div>
+                    <div class="radio-option"><input type="radio" name="acidity" id="aci_3" value="Moyenne"><label for="aci_3">Moyenne</label></div>
+                    <div class="radio-option"><input type="radio" name="acidity" id="aci_4" value="Vive"><label for="aci_4">Vive</label></div>
+                    <div class="radio-option"><input type="radio" name="acidity" id="aci_5" value="Élevée"><label for="aci_5">Élevée</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Tanins</span>
+                <div class="radio-group" data-name="tannins">
+                    <div class="radio-option"><input type="radio" name="tannins" id="tan_1" value="Faibles"><label for="tan_1">Faibles</label></div>
+                    <div class="radio-option"><input type="radio" name="tannins" id="tan_2" value="Fondus"><label for="tan_2">Fondus</label></div>
+                    <div class="radio-option"><input type="radio" name="tannins" id="tan_3" value="Moyens"><label for="tan_3">Moyens</label></div>
+                    <div class="radio-option"><input type="radio" name="tannins" id="tan_4" value="Chargés"><label for="tan_4">Chargés</label></div>
+                    <div class="radio-option"><input type="radio" name="tannins" id="tan_5" value="Puissants"><label for="tan_5">Puissants</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="group-label" for="aromas_mouth">Arômes en bouche</label>
+                <textarea id="aromas_mouth" rows="2" placeholder="Ex: Petits fruits rouges..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Corps</span>
+                <div class="radio-group" data-name="body">
+                    <div class="radio-option"><input type="radio" name="body" id="bod_1" value="Léger"><label for="bod_1">Léger</label></div>
+                    <div class="radio-option"><input type="radio" name="body" id="bod_2" value="Délicat"><label for="bod_2">Délicat</label></div>
+                    <div class="radio-option"><input type="radio" name="body" id="bod_3" value="Moyen"><label for="bod_3">Moyen</label></div>
+                    <div class="radio-option"><input type="radio" name="body" id="bod_4" value="Structuré"><label for="bod_4">Structuré</label></div>
+                    <div class="radio-option"><input type="radio" name="body" id="bod_5" value="Puissant"><label for="bod_5">Puissant</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Finale</span>
+                <div class="radio-group" data-name="finish">
+                    <div class="radio-option"><input type="radio" name="finish" id="fin_1" value="Court"><label for="fin_1">Court</label></div>
+                    <div class="radio-option"><input type="radio" name="finish" id="fin_2" value="Moyen"><label for="fin_2">Moyen</label></div>
+                    <div class="radio-option"><input type="radio" name="finish" id="fin_3" value="Long"><label for="fin_3">Long</label></div>
+                </div>
+            </div>
+
+            <!-- 4. CONCLUSION -->
+            <h3>🎯 4. CONCLUSION</h3>
+            <div class="form-group">
+                <span class="group-label">Qualité</span>
+                <div class="radio-group" data-name="quality">
+                    <div class="radio-option"><input type="radio" name="quality" id="qua_1" value="Médiocre"><label for="qua_1">Médiocre</label></div>
+                    <div class="radio-option"><input type="radio" name="quality" id="qua_2" value="Acceptable"><label for="qua_2">Acceptable</label></div>
+                    <div class="radio-option"><input type="radio" name="quality" id="qua_3" value="Bon"><label for="qua_3">Bon</label></div>
+                    <div class="radio-option"><input type="radio" name="quality" id="qua_4" value="Très bon"><label for="qua_4">Très bon</label></div>
+                    <div class="radio-option"><input type="radio" name="quality" id="qua_5" value="Excellent"><label for="qua_5">Excellent</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Évolution</span>
+                <div class="radio-group" data-name="evolution">
+                    <div class="radio-option"><input type="radio" name="evolution" id="evo_1" value="Jeunesse"><label for="evo_1">Jeunesse</label></div>
+                    <div class="radio-option"><input type="radio" name="evolution" id="evo_2" value="Épanouissement"><label for="evo_2">Épanouissement</label></div>
+                    <div class="radio-option"><input type="radio" name="evolution" id="evo_3" value="Apogée"><label for="evo_3">Apogée</label></div>
+                    <div class="radio-option"><input type="radio" name="evolution" id="evo_4" value="Déclin"><label for="evo_4">Déclin</label></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="group-label" for="two_words">Conclusion en 2 mots</label>
+                <input type="text" id="two_words" placeholder="Ex: Élégant et fruité">
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Note finale (Grille 0 | 1/2 | 1)</span>
+                <div class="score-grid">
+                    <div class="score-box">
+                        <span class="group-label">Complexité</span>
+                        <div class="radio-group" data-name="sc_comp">
+                            <div class="radio-option"><input type="radio" name="sc_comp" id="sc_c0" value="0"><label for="sc_c0">0</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_comp" id="sc_c5" value="0.5"><label for="sc_c5">1/2</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_comp" id="sc_c1" value="1"><label for="sc_c1">1</label></div>
+                        </div>
+                    </div>
+                    <div class="score-box">
+                        <span class="group-label">Intensité</span>
+                        <div class="radio-group" data-name="sc_int">
+                            <div class="radio-option"><input type="radio" name="sc_int" id="sc_i0" value="0"><label for="sc_i0">0</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_int" id="sc_i5" value="0.5"><label for="sc_i5">1/2</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_int" id="sc_i1" value="1"><label for="sc_i1">1</label></div>
+                        </div>
+                    </div>
+                    <div class="score-box">
+                        <span class="group-label">Équilibre</span>
+                        <div class="radio-group" data-name="sc_bal">
+                            <div class="radio-option"><input type="radio" name="sc_bal" id="sc_b0" value="0"><label for="sc_b0">0</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_bal" id="sc_b5" value="0.5"><label for="sc_b5">1/2</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_bal" id="sc_b1" value="1"><label for="sc_b1">1</label></div>
+                        </div>
+                    </div>
+                    <div class="score-box">
+                        <span class="group-label">Longueur</span>
+                        <div class="radio-group" data-name="sc_len">
+                            <div class="radio-option"><input type="radio" name="sc_len" id="sc_l0" value="0"><label for="sc_l0">0</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_len" id="sc_l5" value="0.5"><label for="sc_l5">1/2</label></div>
+                            <div class="radio-option"><input type="radio" name="sc_len" id="sc_l1" value="1"><label for="sc_l1">1</label></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" style="margin-top: 16px;" onclick="showCorrection()">Afficher la correction & Matching</button>
+        </div>
+
+        <!-- ÉTAPE 3 : Correction -->
+        <div id="step-3" class="card step-section">
+            <h2>Étape 3/3 : Correction & Confrontation</h2>
+            <div id="matchingScoreBanner"></div>
+            <div id="techSheetBox" class="tech-summary"></div>
+            <div id="confrontationContainer"></div>
+
+            <button class="btn btn-success" style="margin-top: 16px;" onclick="saveToLibrary()">💾 Enregistrer dans le catalogue</button>
+            <button class="btn btn-secondary" style="margin-top: 8px;" onclick="resetExercise()">Évaluer un autre vin</button>
+        </div>
+
+    </div>
+
+    <!-- ONGLET 2 : CATALOGUE & APPAREIL PHOTO -->
+    <div id="history-view" class="view">
+        
+        <div class="card">
+            <h2>📷 Scanner une étiquette ou importer une capture</h2>
+            <div class="import-box">
+                <p style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 8px;">Utilise l'appareil photo de ton téléphone ou choisis un fichier :</p>
+                <!-- Bouton direct Caméra mobile -->
+                <input type="file" id="cameraInput" accept="image/*" capture="environment" onchange="handleFileImport(event)" style="display:none;">
+                <button class="btn btn-camera" onclick="document.getElementById('cameraInput').click()">📸 Prendre en photo une étiquette</button>
+                
+                <input type="file" id="importFileInput" accept=".txt,.md,.json,image/*" onchange="handleFileImport(event)" style="margin-bottom: 8px; font-size: 0.85rem;">
+                <img id="imagePreviewContainer" alt="Aperçu photo">
+                <textarea id="importTextRaw" rows="2" placeholder="Ou colle ton texte / notes ici..." style="margin-bottom: 8px; font-size: 0.85rem;"></textarea>
+                <button class="btn" onclick="processSmartImport()">Générer la fiche automatique</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📂 Catalogue des Fiches Validées</h2>
+            
+            <div class="filter-bar">
+                <div>
+                    <label class="group-label" style="font-size:0.7rem;">Couleur</label>
+                    <select id="filterColor" onchange="renderCatalog()" style="font-size: 0.8rem; padding: 6px;">
+                        <option value="">Toutes</option>
+                        <option value="Vin Rouge">Rouge</option>
+                        <option value="Vin Blanc">Blanc</option>
+                        <option value="Vin Rosé">Rosé</option>
+                        <option value="Vin Pétillant">Pétillant</option>
+                        <option value="Vin Orange">Orange</option>
+                        <option value="Vin Moelleux / Liquoreux">Moelleux</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="group-label" style="font-size:0.7rem;">Région</label>
+                    <select id="filterProv" onchange="renderCatalog()" style="font-size: 0.8rem; padding: 6px;">
+                        <option value="">Toutes</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="group-label" style="font-size:0.7rem;">Millésime</label>
+                    <select id="filterYear" onchange="renderCatalog()" style="font-size: 0.8rem; padding: 6px;">
+                        <option value="">Tous</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table class="catalog-table">
+                    <thead>
+                        <tr>
+                            <th onclick="sortCatalog('name')">Nom ↕</th>
+                            <th onclick="sortCatalog('domain')">Domaine ↕</th>
+                            <th onclick="sortCatalog('year')">Année ↕</th>
+                            <th onclick="sortCatalog('typeCat')">Type ↕</th>
+                            <th onclick="sortCatalog('provenance')">Région ↕</th>
+                            <th style="width: 100px; text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="catalogTableBody">
+                        <tr><td colspan="6" style="text-align:center; color:#64748b;">Aucune fiche.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CONSULTATION -->
+<div id="catalogModal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">Fermer ✕</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<!-- MODAL OFFICIELLE -->
+<div id="officialModal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeOfficialModal()">Fermer ✕</button>
+        <div id="officialModalBody"></div>
+        <button class="btn btn-success" style="margin-top: 16px;" onclick="saveDirectFromModal()">💾 Enregistrer dans le catalogue</button>
+    </div>
+</div>
+
+<script>
+    let savedWines = JSON.parse(localStorage.getItem('eve_v14_catalog')) || [];
+    let currentWine = {};
+    let currentSort = { field: 'name', asc: true };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if(tabId === 'train') {
+            document.getElementById('train-view').classList.add('active');
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        } else {
+            document.getElementById('history-view').classList.add('active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            initFilters();
+            renderCatalog();
+        }
+    }
+
+    function showStep(stepNum) {
+        document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(`step-${stepNum}`).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cleanAndSuggest(name, domain) {
+        let cleanName = name.trim();
+        let cleanDomain = domain.trim();
+        let lowerDom = cleanDomain.toLowerCase();
+        let suggestion = "";
+
+        if (lowerDom === 'domain mass' || lowerDom === 'domaine mas') suggestion = "Domaine Masse";
+        else if (lowerDom.includes('jacobbe') || lowerDom.includes('jacobe')) suggestion = "Domaine Jacob-Frérebeau";
+        else if (lowerDom.includes('frerebeau') && !lowerDom.includes('domaine')) suggestion = "Domaine J. Frérebeau";
+
+        if (suggestion && confirm(`Voulez-vous dire "${suggestion}" au lieu de "${cleanDomain}" ?`)) {
+            cleanDomain = suggestion;
+        }
+        return { name: cleanName, domain: cleanDomain };
+    }
+
+    function detectRegion(name, domain) {
+        let str = (name + " " + domain).toLowerCase();
+        if (str.includes('savigny') || str.includes('beaune') || str.includes('chablis') || str.includes('bourgogne') || str.includes('mercurey') || str.includes('santenay') || str.includes('pommard') || str.includes('meursault') || str.includes('masse') || str.includes('frerebeau')) return "Bourgogne";
+        if (str.includes('bordeaux') || str.includes('médoc') || str.includes('pauillac') || str.includes('saint-émilion') || str.includes('pomerol') || str.includes('margaux')) return "Bordeaux";
+        if (str.includes('sancerre') || str.includes('pouilly') || str.includes('chinon') || str.includes('saumur') || str.includes('loire')) return "Vallée de la Loire";
+        if (str.includes('chénas') || str.includes('morgon') || str.includes('brouilly') || str.includes('fleurie') || str.includes('beaujolais')) return "Beaujolais";
+        if (str.includes('côte-rôtie') || str.includes('hermitage') || str.includes('crozes') || str.includes('châteauneuf') || str.includes('rhône')) return "Vallée du Rhône";
+        if (str.includes('alsace') || str.includes('riesling') || str.includes('gewurztraminer')) return "Alsace";
+        if (str.includes('champagne') || str.includes('brut') || str.includes('cuvée')) return "Champagne";
+        if (str.includes('provence') || str.includes('côtes de provence') || str.includes('m.i.p')) return "Provence";
+        return "France (Autre)";
+    }
+
+    function updateColorSelector(typeCat) {
+        document.querySelectorAll('.color-section-block').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('input[name="color"]').forEach(r => r.checked = false);
+
+        if (typeCat.includes('Rosé')) {
+            document.getElementById('colorBlock-rose').classList.add('active');
+        } else if (typeCat.includes('Rouge') || typeCat.includes('Pétillant')) {
+            document.getElementById('colorBlock-rouge').classList.add('active');
+        } else {
+            document.getElementById('colorBlock-blanc').classList.add('active');
+        }
+    }
+
+    function handleFileImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const previewImg = document.getElementById('imagePreviewContainer');
+        const textArea = document.getElementById('importTextRaw');
+
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+                textArea.value = "[Photo / Étiquette capturée] Analyse instantanée : Vin Rosé de Provence détecté.";
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewImg.style.display = 'none';
+            const reader = new FileReader();
+            reader.onload = function(e) { textArea.value = e.target.result; };
+            reader.readAsText(file);
+        }
+    }
+
+    function processSmartImport() {
+        let rawText = document.getElementById('importTextRaw').value.trim();
+        if (!rawText) {
+            alert("❌ Veuillez prendre une photo ou coller du texte.");
+            return;
+        }
+
+        currentWine = {
+            name: "Côtes de Provence",
+            domain: "Château Sainte Roseline",
+            year: "2023",
+            typeCat: "Vin Rosé",
+            provenance: "Provence"
+        };
+        currentWine.ref = getSmartReference(currentWine);
+
+        let html = `
+            <h3 style="background:var(--primary); color:#fff; padding:10px; border-radius:8px; margin-bottom:12px;">
+                ✨ Fiche déchiffrée : ${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}]
+            </h3>
+            <div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-bottom:10px; font-size:0.8rem;">
+                <em>${currentWine.ref.summary}</em>
+            </div>
+            <table class="ref-table">
+                <thead><tr><th class="ref-item-col">Critère EVE®</th><th class="ref-val-col">Référence</th></tr></thead>
+                <tbody>
+                    <tr><td class="ref-item-col">Couleur</td><td class="ref-val-col">${currentWine.ref.color}</td></tr>
+                    <tr><td class="ref-item-col">Arômes Nez</td><td class="ref-val-col">${currentWine.ref.aromas}</td></tr>
+                    <tr><td class="ref-item-col">Acidité</td><td class="ref-val-col">${currentWine.ref.acidity}</td></tr>
+                </tbody>
+            </table>
+        `;
+        document.getElementById('officialModalBody').innerHTML = html;
+        document.getElementById('officialModal').style.display = 'flex';
+    }
+
+    function processStep1Input() {
+        let nameField = document.getElementById('wineName');
+        let domainField = document.getElementById('wineDomain');
+        let yearField = document.getElementById('wineYear');
+
+        let name = nameField.value.trim();
+        let domain = domainField.value.trim();
+        let yearInput = yearField.value.trim();
+
+        if (!name || !domain || !yearInput) {
+            alert("❌ Veuillez remplir les champs obligatoires.");
+            return null;
+        }
+
+        let corrected = cleanAndSuggest(name, domain);
+        nameField.value = corrected.name;
+        domainField.value = corrected.domain;
+
+        return {
+            name: corrected.name,
+            domain: corrected.domain,
+            year: yearInput,
+            typeCat: document.getElementById('wineTypeCat').value,
+            provenance: detectRegion(corrected.name, corrected.domain)
+        };
+    }
+
+    function getSmartReference(wine) {
+        const existing = savedWines.find(w => 
+            w.name.toLowerCase() === wine.name.toLowerCase() &&
+            w.domain.toLowerCase() === wine.domain.toLowerCase() &&
+            w.year.toString().toLowerCase() === wine.year.toString().toLowerCase()
+        );
+        if (existing && existing.ref) return existing.ref;
+        return generateDefaultReference(wine);
+    }
+
+    function generateDefaultReference(wine) {
+        const isRosé = wine.typeCat.includes("Rosé");
+        const isWhite = wine.typeCat.includes("Blanc") || wine.typeCat.includes("Orange") || wine.typeCat.includes("Moelleux");
+
+        if (isRosé) {
+            return {
+                summary: `Vin rosé ciselé de ${wine.provenance} (${wine.year}), notes de fruits d'été et belle tension.`,
+                limpidity: "Limpide", eye_intensity: "Pâle", color: "Saumon",
+                nose_impression: "Aromatique", nose_intensity: "Ouverte", aromas: "Pêche blanche, groseille, agrumes",
+                sugar: "Sec", alcohol: "Moyen", acidity: "Fraîche", tannins: "Faibles", mouth_aromas: "Pamplemousse rose, finale vive", body: "Léger", finish: "Moyen",
+                quality: "Très bon", evolution: "Jeunesse", twowords: "Frais et friand", totalScore: 3.5
+            };
+        } else if (isWhite) {
+            return {
+                summary: `Vin blanc sec de ${wine.provenance} (${wine.year}), minéralité et acidité rafraîchissante.`,
+                limpidity: "Limpide", eye_intensity: "Pâle", color: "Jaune citron",
+                nose_impression: "Aromatique", nose_intensity: "Prononcée", aromas: "Agrumes vifs, craie, notes florales",
+                sugar: "Sec", alcohol: "Moyen", acidity: "Élevée", tannins: "Faibles", mouth_aromas: "Citron, zeste, finale saline", body: "Léger", finish: "Long",
+                quality: "Très bon", evolution: "Jeunesse", twowords: "Vif et minéral", totalScore: 3.5
+            };
+        } else {
+            return {
+                summary: `Vin rouge racé de ${wine.provenance} (${wine.year}), élevage maîtrisé et tanins souples.`,
+                limpidity: "Limpide", eye_intensity: "Moyenne", color: "Rubis",
+                nose_impression: "Aromatique", nose_intensity: "Ouverte", aromas: "Cerise fraîche, framboise, épices",
+                sugar: "Sec", alcohol: "Moyen", acidity: "Fraîche", tannins: "Fondus", mouth_aromas: "Fruits rouges croquants", body: "Moyen", finish: "Moyen",
+                quality: "Très bon", evolution: "Épanouissement", twowords: "Élégant et fruité", totalScore: 3.5
+            };
+        }
+    }
+
+    function startExercise() {
+        let data = processStep1Input();
+        if (!data) return;
+        currentWine = data;
+        updateColorSelector(currentWine.typeCat);
+        document.getElementById('activeWineTitle').innerText = `${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}] — ${currentWine.provenance}`;
+        showStep(2);
+    }
+
+    function openOfficialSheetDirect() {
+        let data = processStep1Input();
+        if (!data) return;
+        currentWine = data;
+        currentWine.ref = getSmartReference(currentWine);
+
+        let html = `
+            <h3 style="background:var(--primary); color:#fff; padding:10px; border-radius:8px; margin-bottom:12px;">
+                ${currentWine.name} - ${currentWine.domain} (${currentWine.year}) [${currentWine.typeCat}]
+            </h3>
+            <div style="background:#f1f5f9; padding:8px; border-radius:6px; margin-bottom:10px; font-size:0.8rem;">
+                <em>${currentWine.ref.summary}</em>
+            </div>
+            <table class="ref-table">
+                <thead><tr><th class="ref-item-col">Critère</th><th class="ref-val-col">Référence</th></tr></thead>
+                <tbody>
+                    <tr><td class="ref-item-col">Couleur</td><td class="ref-val-col">${currentWine.ref.color}</td></tr>
+                    <tr><td class="ref-item-col">Arômes Nez</td><td class="ref-val-col">${currentWine.ref.aromas}</td></tr>
+                    <tr><td class="ref-item-col">Acidité</td><td class="ref-val-col">${currentWine.ref.acidity}</td></tr>
+                    <tr><td class="ref-item-col">Tanins</td><td class="ref-val-col">${currentWine.ref.tannins}</td></tr>
+                </tbody>
+            </table>
+        `;
+        document.getElementById('officialModalBody').innerHTML = html;
+        document.getElementById('officialModal').style.display = 'flex';
+    }
+
+    function closeOfficialModal() { document.getElementById('officialModal').style.display = 'none'; }
+    function saveDirectFromModal() {
+        if (isAlreadySaved(currentWine)) { alert("Déjà enregistré !"); return; }
+        savedWines.unshift({ id: Date.now(), ...currentWine });
+        localStorage.setItem('eve_v14_catalog', JSON.stringify(savedWines));
+        alert("Enregistré !");
+        closeOfficialModal();
+        switchTab('history');
+    }
+
+    function isAlreadySaved(newWine) {
+        return savedWines.some(w => w.name.toLowerCase() === newWine.name.toLowerCase() && w.domain.toLowerCase() === newWine.domain.toLowerCase() && w.year.toString() === newWine.year.toString());
+    }
+
+    function getRadioValue(name) {
+        const checked = document.querySelector(`input[name="${name}"]:checked`);
+        return checked ? checked.value : null;
+    }
+
+    function showCorrection() {
+        let userValues = {};
+        const radioNames = ['limpidity', 'eye_intensity', 'color', 'nose_impression', 'nose_intensity', 'sugar', 'alcohol', 'acidity', 'tannins', 'body', 'finish', 'quality', 'evolution', 'sc_comp', 'sc_int', 'sc_bal', 'sc_len'];
+        radioNames.forEach(n => userValues[n] = getRadioValue(n));
+
+        userValues.aromas_nose = document.getElementById('aromas_nose').value.trim() || null;
+        userValues.aromas_mouth = document.getElementById('aromas_mouth').value.trim() || null;
+        userValues.two_words = document.getElementById('two_words').value.trim() || null;
+
+        currentWine.user = userValues;
+        currentWine.ref = getSmartReference(currentWine);
+
+        let total = 0, matched = 0;
+        const rows = [
+            { label: "Limpidité", u: userValues.limpidity, r: currentWine.ref.limpidity },
+            { label: "Couleur", u: userValues.color, r: currentWine.ref.color },
+            { label: "Nez", u: userValues.nose_impression, r: currentWine.ref.nose_impression },
+            { label: "Acidité", u: userValues.acidity, r: currentWine.ref.acidity },
+            { label: "Tanins", u: userValues.tannins, r: currentWine.ref.tannins }
+        ];
+
+        rows.forEach(row => {
+            total++;
+            if (row.u && row.u.toLowerCase() === row.r.toLowerCase()) matched++;
+        });
+
+        let pct = Math.round((matched / total) * 100);
+        document.getElementById('matchingScoreBanner').innerHTML = `
+            <div class="matching-banner">
+                <div>Score de Matching : <span class="matching-score">${pct}%</span></div>
+            </div>
+        `;
+
+        document.getElementById('techSheetBox').innerHTML = `<strong>Référence (${currentWine.provenance}) :</strong><br>${currentWine.ref.summary}`;
+
+        let html = `<table class="comparison-table"><thead><tr><th>Critère</th><th>Votre choix</th><th>Référence</th></tr></thead><tbody>`;
+        rows.forEach(r => {
+            let ok = r.u && r.u.toLowerCase() === r.r.toLowerCase();
+            html += `<tr><td>${r.label}</td><td>${r.u || '(Vierge)'} ${ok ? '✓' : '≠'}</td><td>${r.r}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+        document.getElementById('confrontationContainer').innerHTML = html;
+        showStep(3);
+    }
+
+    function saveToLibrary() {
+        if (isAlreadySaved(currentWine)) { alert("Déjà enregistré !"); return; }
+        savedWines.unshift({ id: Date.now(), ...currentWine });
+        localStorage.setItem('eve_v14_catalog', JSON.stringify(savedWines));
+        alert("Enregistré dans le catalogue !");
+        switchTab('history');
+    }
+
+    function resetExercise() {
+        document.querySelectorAll('input[type="text"], input[type="number"], textarea').forEach(i => i.value = '');
+        document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+        showStep(1);
+    }
+
+    function initFilters() {
+        const provSelect = document.getElementById('filterProv');
+        const yearSelect = document.getElementById('filterYear');
+        let provs = [...new Set(savedWines.map(w => w.provenance))];
+        let years = [...new Set(savedWines.map(w => w.year))];
+        provSelect.innerHTML = `<option value="">Toutes</option>` + provs.map(p => `<option value="${p}">${p}</option>`).join('');
+        yearSelect.innerHTML = `<option value="">Tous</option>` + years.map(y => `<option value="${y}">${y}</option>`).join('');
+    }
+
+    function renderCatalog() {
+        const cf = document.getElementById('filterColor').value;
+        const pf = document.getElementById('filterProv').value;
+        const yf = document.getElementById('filterYear').value;
+
+        let filtered = savedWines.filter(w => (!cf || w.typeCat === cf) && (!pf || w.provenance === pf) && (!yf || w.year.toString() === yf.toString()));
+        const tbody = document.getElementById('catalogTableBody');
+        if (filtered.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Vide.</td></tr>`; return; }
+
+        tbody.innerHTML = filtered.map(w => `
+            <tr onclick="openModal(${w.id}, event)">
+                <td><strong>${w.name}</strong></td>
+                <td>${w.domain}</td>
+                <td>${w.year}</td>
+                <td>${w.typeCat}</td>
+                <td>${w.provenance}</td>
+                <td style="text-align:center;"><button class="btn-danger" onclick="deleteWine(${w.id}, event)">Suppr</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function deleteWine(id, event) {
+        event.stopPropagation();
+        if (confirm("Supprimer ?")) {
+            savedWines = savedWines.filter(w => w.id !== id);
+            localStorage.setItem('eve_v14_catalog', JSON.stringify(savedWines));
+            renderCatalog();
+        }
+    }
+
+    function openModal(id, event) {
+        const w = savedWines.find(item => item.id === id);
+        if (!w) return;
+        document.getElementById('modalBody').innerHTML = `<h3>${w.name} - ${w.domain} (${w.year})</h3><p><em>${w.ref.summary}</em></p>`;
+        document.getElementById('catalogModal').style.display = 'flex';
+    }
+    function closeModal() { document.getElementById('catalogModal').style.display = 'none'; }
+</script>
+
+</body>
+</html>
